@@ -1,17 +1,33 @@
 const express = require("express");
+const Person = require("./models/person");
+
+require("./db");
 
 const app = express();
 
-app.listen(8080, () => {
-  console.log("Serveur à l'écoute");
+const port = process.env.PORT || 3301;
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
 
-const MongoClient = require("mongodb").MongoClient;
-const url = "mongodb://localhost:27017";
-const dbName = "parkingApi";
-let db;
+// POST route
 
-MongoClient.connect(url, function (err, client) {
-  console.log("Connected successfully to server");
-  db = client.db(dbName);
+app.post("/argonautes", (req, res, next) => {
+  delete req.body._id;
+  const person = new Person({
+    ...req.body,
+  });
+  person
+    .save()
+    .then(() => res.status(201).json({ message: "Objet enregistré !" }))
+    .catch((error) => res.status(400).json({ error }));
+});
+
+// GET route
+
+app.use("/argonautes", (req, res, next) => {
+  Person.find()
+    .then((persons) => res.status(200).json(persons))
+    .catch((error) => res.status(400).json({ error }));
 });
